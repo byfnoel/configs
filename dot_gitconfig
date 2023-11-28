@@ -1,0 +1,59 @@
+[user]
+    email = 63328653+byfnoel@users.noreply.github.com
+	name = Francisco Noel
+
+[push]
+    autoSetupRemote = true
+
+[fetch]
+    prune = true
+
+[core]
+    editor = vim
+    excludesfile = ~/.gitignore
+
+[feature]
+    manyFiles = 1
+
+[init]
+	defaultBranch = main
+
+[help]
+	autocorrect = 1
+
+[log]
+    date = short
+
+[alias]
+    gaa=git add .
+    gac=git add -v . && git commit
+    gapa='git add --intent-to-add . && git add --patch'
+    gb="git branch --sort=-committerdate --verbose"
+    gbdr='git push origin --delete'
+    gc='git commit'
+    gca='git commit -a'
+    gcnv="git commit --allow-empty --no-verify"
+    gcob="git checkout -b"
+    gcod="git checkout develop"
+    gcot="git checkout -t"
+    gcount="git shortlog -sn --all --no-merges"
+    gd="git diff"
+    gdc="diff --name-only --diff-filter=U"
+    gds="git diff --staged"
+    gdw="git diff --word-diff -w"
+    gep='git add . && git commit --allow-empty - m "intentionally empty debug push" && git push origin $(git_current_branch)'
+    ggc="git gc --prune=now --aggressive"
+    giu="git status --porcelain | grep '^??' | cut -c4- >> .gitignore"
+    glb='git branch --sort="-committerdate" --format="%(color:green)%(committerdate:relative)%(color:reset) %(refname:short)"'
+    python="python3"
+    glogg='glog --decorate'
+    glogs='git log --all --decorate --stat --date=iso'
+    gl="git log --graph --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%an%C(reset)%C(bold yellow)%d%C(reset) %C(dim white)-            %s%C(reset)' --all'"
+    grhs1='git reset --soft HEAD~1'
+    grhs='git reset --soft'
+    grss='git restore --staged'
+    gsh="git show -w"
+    gst="git status --show-stash --untracked-files=all"
+    gupod="git pull --autostash --rebase origin develop"
+    gupo="git pull --autostash --rebase origin"
+    lg='lazygit'
