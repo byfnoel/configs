@@ -1,0 +1,92 @@
+{
+  "coc.preferences.formatOnSave": true,
+  "suggest.noselect": true,
+  "java.completion.importOrder": [" "],
+  "inlayHint.display": false,
+  "java.configuration.workspaceCacheLimit": 90,
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.import.maven.offline.enabled": true,
+  "java.referencesCodeLens.enabled": true,
+  "java.saveActions.organizeImports": true,
+  "java.completion.matchCase": "auto",
+  "java.codeGeneration.useBlocks": true,
+  "java.codeGeneration.generateComments": true,
+  "java.codeGeneration.hashCodeEquals.useInstanceof": true,
+  "java.codeGeneration.hashCodeEquals.useJava7Objects": true,
+  "semanticTokens.enable": true,
+  "colors.enable": true,
+  "eslint.autoFixOnSave": true,
+
+  /* diagnostic-languageserver */
+  "diagnostic-languageserver.filetypes": {
+    "vim": "vint",
+    "email": "languagetool",
+    "markdown": ["write-good", "markdownlint"],
+    "sh": "shellcheck",
+    "yaml": ["yamllint"],
+    "cmake": ["cmake-lint", "cmakelint"],
+    "systemd": "systemd-analyze"
+  },
+  "diagnostic-languageserver.formatFiletypes": {
+    "python": ["black", "isort"],
+    "lua": "lua-format",
+    "sh": "shfmt",
+    "cmake": "cmake-format"
+  },
+
+  "languageserver": {
+    "clangd": {
+      "command": "clangd",
+      "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
+      "filetypes": ["c", "cc", "cpp", "c++", "h"]
+    },
+    "dockerfile": {
+      "command": "docker-langserver",
+      "filetypes": ["dockerfile"],
+      "args": ["--stdio"]
+    },
+    "graphql": {
+      "command": "graphql-lsp",
+      "args": ["server", "-m", "stream"],
+      "filetypes": [
+        "typescript",
+        "typescriptreact",
+        "graphql",
+        "javascript",
+        "javascriptreact"
+      ]
+    },
+    "sql": {
+      "module": "/path/to/node_modules/sql-language-server/dist/bin/cli.js",
+      "args": ["up", "--method", "node-ipc"],
+      "filetypes": ["sql", "mysql", "postgresql"]
+    },
+    "terraform": {
+      "command": "terraform-lsp",
+      "filetypes": ["terraform"]
+    },
+
+    "bash": {
+      "command": "bash-language-server",
+      "args": ["start"],
+      "filetypes": ["sh"]
+    },
+    "cmake": {
+      "command": "cmake-language-server",
+      "filetypes": ["cmake"],
+      "rootPatterns": ["build/"],
+      "initializationOptions": {
+        "buildDirectory": "build"
+      }
+    }
+  },
+  "links.highlight": true,
+  "texlab.build.onSave": true,
+  "texlab.chktex.onEdit": true,
+  "texlab.chktex.onOpenAndSave": true,
+  "workspace.ignoredFolders": ["$HOME", "$HOME/.cargo/**", "$HOME/.rustup/**"],
+
+  /* Markdown */
+  "webview.debug": true,
+  "coc.preferences.extensionUpdateCheck": "daily"
+}
