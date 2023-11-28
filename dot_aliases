@@ -1,0 +1,54 @@
+# Global alias
+ alias update="omz update; brew update; brew upgrade; brew autoremove; brew cleanup -s  && \rm -rf "$(brew --cache)";
+            source ~/.zshrc; omz update; brew update; brew upgrade; brew autoremove;
+            brew cleanup -s  && \rm -rf "$(brew --cache)"; source ~/.zshrc; softwareupdate -i -a"
+
+ alias al="alias | ag"
+ alias hs='history | grep'
+ alias htop="htop --sort-key=PERCENT_CPU"
+ alias reload="exec ${SHELL} -l; tmux source-file ~/.tmux.conf"
+ alias path='echo -e ${PATH//:/\\n}'
+ alias pip="pip3"
+ alias python="python3"
+
+# network
+ alias pingdns="ping -c3 8.8.8.8"
+ alias pingtest="ping -c3 google.com"
+ alias myip="curl http://ipecho.net/plain; echo"
+ alias myrouter="netstat -nr | grep default"
+ alias localip="ipconfig getifaddr en0"
+
+# git
+ alias 'gc!'='git commit --amend'
+ alias 'gca!'='git commit -a --amend'
+ alias 'gcan!'='git commit -a --no-edit --amend'
+
+# docker
+ alias dc='docker container'
+ alias dcls='docker container ls'
+ alias dclsf='docker container ls --format "table {{.ID}}\t{{.Image}}\t{{.Names}}\t{{.Status}}\t{{.Status}}"'
+ alias ldoc='lazydocker'
+ alias ctop='ctop -i'
+ alias dcupb='docker-compose up --build'
+
+ # npm
+ alias ni='npm install'
+ alias nu='npm uninstall'
+ alias nid='npm install --save-dev'
+ alias nig='npm install --global'
+ alias nt='npm test'
+ alias nit='npm install && npm test'
+ alias nk='npm link'
+ alias naf='npm audit fix'
+ alias nr='npm run'
+ alias ns='npm start'
+ alias nf='npm cache clean && rm -rf node_modules && npm install'
+ alias nlg='npm list --global --depth=0'
+ alias npkill='npx npkill'
+ alias depcheck='npx depcheck'
+ alias ncu='npx npm-check-updates'
+
+# archives
+ alias ltar="tar -ztvf"
+ alias untar="tar -zxvf"
+ alias atar="tar -cvzf"
