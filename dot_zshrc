@@ -1,0 +1,52 @@
+# Enable Powerlevel10k instant prompt
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+export EDITOR='vim'
+export MANPATH="/usr/local/man:$MANPATH" # User configuration
+export ARCHFLAGS="-arch x86_64" # Compilation flags
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+export CPPFLAGS="-I/opt/homebrew/opt/openjdk/include"
+export PATH="$PATH:/usr/bin/python"
+
+PROMPT='%F{#00ffff}%n%f@%F{yellow3}%m%f %F{blue}%B%~%b%f %#'
+
+export PATH=$HOME/bin:/usr/local/bin:$PATH # If you come from bash you might have to change your $PATH
+export ZSH="$HOME/.oh-my-zsh" # Path to your oh-my-zsh installation
+
+ZSH_THEME="powerlevel10k/powerlevel10k"  # Set name of the theme to load
+CASE_SENSITIVE="false" # Uncomment the following line to use case-sensitive completion
+HYPHEN_INSENSITIVE="true" # Uncomment the following line to use hyphen-insensitive completion
+DISABLE_MAGIC_FUNCTIONS="false" # Uncomment the following line if pasting URLs and other text is messed up
+DISABLE_LS_COLORS="false" # Uncomment the following line to disable colors in ls
+DISABLE_AUTO_TITLE="false" # Uncomment the following line to disable auto-setting terminal title
+ENABLE_CORRECTION="false" # Uncomment the following line to enable command auto-correction
+COMPLETION_WAITING_DOTS="true" # Display waiting dots whilst waiting for completion
+DISABLE_UNTRACKED_FILES_DIRTY="false" # Disable marking untracked files
+
+# Enhance vim experience with plugins
+plugins=(
+    aliases alias-finder autopep8 aws brew colored-man-pages copyfile dotenv encode64 extract fancy-ctrl-z git
+    node npm pep8 systemadmin safe-paste pip pipenv postgres macos pyenv pylint python virtualenv tmux mvn
+    transfer zsh-autosuggestions zsh-syntax-highlighting
+ )
+
+source $ZSH/oh-my-zsh.sh
+source $HOME/.aliases
+
+# docker completion
+zstyle ':completion:*:*:docker:*' option-stacking yes
+zstyle ':completion:*:*:docker-*:*' option-stacking yes
+
+# You may need to manually set your language environment
+export LANG=en_US.UTF-8
+
+# Preferred editor for local and remote sessions
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+fi
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+export PATH="/opt/homebrew/opt/zip/bin:$PATH"
