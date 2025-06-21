@@ -17,5 +17,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
-          args: --check .
-
+          args: --color always --respect-ignores --check .
