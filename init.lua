@@ -473,26 +473,60 @@ require('lazy').setup({
 
       -- Enable the following language servers
       local servers = { -- See `help lspconfig-all` for a list of all the pre-configured LSPs
-        clangd = {},
         bashls = {},
+        clangd = {},
         cmake = {},
         css_variables = {},
         emmet_language_server = {},
         eslint = {},
-        graphql = {},
         html = {},
         jsonls = {},
         just = {},
-        ltex = {},
+        ltex = {
+          settings = {
+            language = 'en-US',
+          },
+        },
         postgres_lsp = {},
         pyright = {},
-        ruff = {},
-        rust_analyzer = {},
+        rust_analyzer = {
+          settings = {
+            ['rust-analyzer'] = {
+              cargo = {
+                features = 'all',
+                targetDir = true,
+              },
+              check = {
+                command = 'clippy',
+                allTargets = true,
+                features = 'all',
+              },
+              completion = {
+                fullFunctionSignatures = {
+                  enable = true,
+                },
+                postfix = {
+                  enable = false,
+                },
+              },
+              diagnostics = {
+                styleLints = {
+                  enable = true,
+                },
+              },
+              inLayHints = {
+                chainingHints = {
+                  enable = false,
+                },
+                typeHints = {
+                  enable = false,
+                },
+              },
+            },
+          },
+        },
         smithy_ls = {},
-        superhtml = {},
         ts_ls = {},
-        vimls = {},
-        zls = {},
         lua_ls = {
           settings = {
             Lua = {
@@ -503,6 +537,7 @@ require('lazy').setup({
             },
           },
         },
+        yamlls = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -716,7 +751,6 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     opts = {
       ensure_installed = {
-        'asm',
         'bash',
         'bibtex',
         'c',
@@ -729,7 +763,6 @@ require('lazy').setup({
         'git_rebase',
         'gitcommit',
         'gitignore',
-        'graphql',
         'html',
         'http',
         'java',
@@ -744,7 +777,6 @@ require('lazy').setup({
         'luadoc',
         'markdown',
         'markdown_inline',
-        'nix',
         'python',
         'rust',
         'sql',
@@ -757,7 +789,6 @@ require('lazy').setup({
         'vimdoc',
         'xml',
         'yaml',
-        'zig',
       },
       auto_install = true,
       highlight = {
