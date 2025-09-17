@@ -6,25 +6,25 @@ vim.g.maplocalleader = ' '
 vim.g.have_nerd_font = true
 
 -- Never ever fold
-vim.opt.foldenable = false
-vim.opt.foldmethod = 'manual'
-vim.opt.foldlevelstart = 99
+vim.o.foldenable = false
+vim.o.foldmethod = 'manual'
+vim.o.foldlevelstart = 99
 
 -- Default language
-vim.opt.spelllang = 'en_us'
+vim.o.spelllang = 'en_us'
 
 -- Indent
-vim.opt.tabstop = 4
-vim.opt.softtabstop = 4
-vim.opt.shiftwidth = 4
-vim.opt.expandtab = true
+vim.o.tabstop = 4
+vim.o.softtabstop = 4
+vim.o.shiftwidth = 4
+vim.o.expandtab = true
 
 -- Enable termguicolors
 vim.o.termguicolors = true
 vim.o.background = 'dark'
 
 -- Remove intro message
-vim.opt.shortmess:append { I = true }
+vim.o.shortmess = vim.o.shortmess .. 'I'
 
 -- [[ Setting options ]]
 -- See `:help vim.o` and for more options, you can see `:help option-list`
@@ -120,6 +120,12 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Some terminals have colliding keymaps or are not able to send distinct keycodes
+vim.keymap.set('n', '<C-S-h>', '<C-w>H', { desc = 'Move window to the left' })
+vim.keymap.set('n', '<C-S-l>', '<C-w>L', { desc = 'Move window to the right' })
+vim.keymap.set('n', '<C-S-j>', '<C-w>J', { desc = 'Move window to the lower' })
+vim.keymap.set('n', '<C-S-k>', '<C-w>K', { desc = 'Move window to the upper' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -148,6 +154,16 @@ vim.api.nvim_create_autocmd('BufReadPost', {
         vim.cmd 'exe "normal! g\'\\""'
       end
     end
+  end,
+})
+
+-- wrap and check for spell in text filetypes
+vim.api.nvim_create_autocmd('FileType', {
+  group = vim.api.nvim_create_augroup('wrap_spell', { clear = true }),
+  pattern = { 'gitcommit', 'markdown' },
+  callback = function()
+    vim.opt_local.wrap = true
+    vim.opt_local.spell = true
   end,
 })
 
@@ -197,7 +213,6 @@ require('lazy').setup({
       },
     },
   },
-  { 'mfussenegger/nvim-jdtls' },
 
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
@@ -243,7 +258,7 @@ require('lazy').setup({
 
       -- Document existing key chains
       spec = {
-        { '<leader>s', group = '[S]earch' },
+        { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
@@ -343,11 +358,12 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>f', builtin.find_files, { desc = 'Search [F]iles' })
       vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-      vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
+      vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
       vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+      vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
       vim.keymap.set('n', '<leader>o', ':Telescope <CR>', { noremap = true, silent = true, desc = 'Open Telescope' })
 
@@ -421,20 +437,11 @@ require('lazy').setup({
           map('gt', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype Definition of the word under your cursor')
           map('K', vim.lsp.buf.hover, 'Hover Documentation')
 
-          -- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
-          ---@param client vim.lsp.Client
-          ---@param method vim.lsp.protocol.Method
-          ---@param bufnr? integer some lsp support methods only in specific files
-          ---@return boolean
-          local function client_supports_method(client, method, bufnr)
-            return client:supports_method(method, bufnr)
-          end
-
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
           --
           -- The following code creates a keymap to toggle inlay hints in your code, if the language server you are using supports them
-          if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
@@ -481,16 +488,9 @@ require('lazy').setup({
         emmet_language_server = {},
         eslint = {},
         html = {},
-        jdtls = {},
         jsonls = {},
         just = {},
-        ltex = {
-          settings = {
-            language = 'en-US',
-          },
-        },
         postgres_lsp = {},
-        pyright = {},
         rust_analyzer = {
           settings = {
             ['rust-analyzer'] = {
@@ -527,7 +527,6 @@ require('lazy').setup({
             },
           },
         },
-        smithy_ls = {},
         ts_ls = {},
         lua_ls = {
           settings = {
@@ -607,6 +606,9 @@ require('lazy').setup({
     },
   },
 
+  -- Highlight todo, notes, etc in comments
+  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+
   { -- Autocompletion
     'saghen/blink.cmp',
     event = 'VimEnter',
@@ -678,7 +680,7 @@ require('lazy').setup({
     },
   },
 
-  { -- Main color scheme; To see what colorschemes are already installed, use `:Telescope colorscheme`.
+  { -- Main color scheme; To see current colorscheme, use `:Telescope colorscheme`.
     'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
@@ -689,29 +691,11 @@ require('lazy').setup({
   },
 
   {
-    'Bekaboo/deadcolumn.nvim',
-    opts = {
-      scope = 'line', ---@type string|fun(): integer
-      ---@type string[]|boolean|fun(mode: string): boolean
-      modes = function(mode)
-        return mode:find '^[iRss\x13]' ~= nil
-      end,
-      blending = {
-        threshold = 0.5,
-        colorcode = '#000000',
-        hlgroup = { 'Normal', 'bg' },
-      },
-      warning = {
-        alpha = 0.4,
-        offset = 0,
-        colorcode = '#FF0000',
-        hlgroup = { 'Error', 'bg' },
-      },
-      extra = {
-        ---@type string?
-        follow_tw = nil,
-      },
-    },
+    'MeanderingProgrammer/render-markdown.nvim',
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = {},
   },
 
   {
@@ -724,7 +708,7 @@ require('lazy').setup({
   },
 
   { -- Collection of various small independent plugins/modules
-    'echasnovski/mini.nvim',
+    'nvim-mini/mini.nvim',
     config = function()
       -- Better Around/Inside textobjects
       --  - va)  - [V]isually select [A]round [)]paren
@@ -744,7 +728,6 @@ require('lazy').setup({
       statusline.section_location = function()
         return '%2l:%-2v'
       end
-      --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
   { -- Highlight, edit, and navigate code; See `:help nvim-treesitter`
@@ -767,7 +750,6 @@ require('lazy').setup({
         'gitignore',
         'html',
         'http',
-        'java',
         'javascript',
         'javadoc',
         'json',
