@@ -5,7 +5,7 @@
 A starting point for Neovim that is:
 
 * Small
-* Single-file
+* Modular
 * Completely Documented
 * Extendable
 
@@ -49,7 +49,7 @@ machine using one of the commands below, depending on your OS.
 
 > [!NOTE]
 > Your fork's URL will be something like this:
-> `https://github.com/byfnoel/configs.git`
+> `https://github.com/<username>/configs.git`
 
 You likely want to remove `lazy-lock.json` from your fork's `.gitignore` file too
 and track it in version control.
@@ -69,7 +69,6 @@ git clone https://github.com/byfnoel/configs.git "${XDG_CONFIG_HOME:-$HOME/.conf
 ### Post Installation
 
 Start Neovim
-
 ```sh
 nvim
 ```
@@ -85,10 +84,6 @@ examples of adding popularly requested plugins.
 
 > [!NOTE]
 > For more information about a particular plugin check its repository's documentation.
-
-### Getting Started
-
-[The Only Video You Need to Get Started with Neovim](https://youtu.be/m8C0Cq9Uv9o)
 
 ### FAQ
 
