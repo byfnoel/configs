@@ -33,7 +33,7 @@ vim.o.shortmess = vim.o.shortmess .. 'I'
 vim.o.number = true
 vim.o.relativenumber = true
 
--- Enable mouse mode, can be useful for resizing splits for example!
+-- Enable mouse mode
 vim.o.mouse = 'a'
 
 -- Don't show the mode, since it's already in the status line
@@ -67,11 +67,11 @@ vim.o.timeoutlen = 120
 vim.o.splitright = true
 vim.o.splitbelow = true
 
--- Sets how neovim will display certain whitespace characters in the editor.
+-- Sets how neovim will display certain whitespace characters in the editor
 vim.o.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
--- Preview substitutions live, as you type!
+-- Preview live substitution typing
 vim.o.inccommand = 'split'
 
 -- Show which line your cursor is on
@@ -84,10 +84,11 @@ vim.o.sidescrolloff = 2
 -- Raise a dialog asking if you wish to save the current file(s)
 vim.o.confirm = true
 
--- [[ Basic Keymaps ]] - See `:help vim.keymap.set()`
+-- [[ Basic Keymaps ]]
+-- See `:help vim.keymap.set()`
 
 vim.keymap.set('n', '<leader>w', '<cmd>w<cr>', { desc = 'Quickly save to buffer' })
-vim.keymap.set('n', '<CR>', '<cmd>nohlsearch<CR>', { desc = 'Clear highlights on search when pressing <Return> in normal mode' })
+vim.keymap.set('n', '<CR>', '<cmd>nohlsearch<CR>', { desc = 'Clear highlights on search w/ <Return> key' })
 vim.keymap.set('n', 'Q', '<nop>', { desc = "Don't ever press Q" })
 
 -- Move text around in groups
@@ -108,17 +109,32 @@ vim.keymap.set('n', '<C-j>', '<cmd>cprev<CR>zz')
 vim.keymap.set('n', '<leader>k', '<cmd>lnext<CR>zz')
 vim.keymap.set('n', '<leader>j', '<cmd>lprev<CR>zz')
 
+-- Toggle qflist window
+vim.keymap.set('n', '<Leader>q', function()
+  vim.cmd(vim.fn.getqflist({ winid = 0 }).winid ~= 0 and 'cclose' or 'copen')
+end)
+
+-- Add all diagnostics to the qflist
+vim.keymap.set('n', 'grq', function()
+  vim.diagnostic.setqflist { open = false }
+  pcall(vim.cmd.cc)
+end)
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic float' })
 
 -- Exit terminal mode in the builtin terminal or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
---  Use CTRL+<hjkl> to switch between windows - See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+-- Toggle Avante AI sidebar
+vim.keymap.set({ 'n', 'v' }, '<C-a>i', '<cmd>AvanteToggle<CR>', { desc = 'Toggle Avante AI' })
+
+-- Use CTRL+<hjkl> to switch between windows - See `:help wincmd` for a list of all window commands
+vim.keymap.set('n', '<C-left>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-right>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-down>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<C-up>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- Some terminals have colliding keymaps or are not able to send distinct keycodes
 vim.keymap.set('n', '<C-S-h>', '<C-w>H', { desc = 'Move window to the left' })
@@ -137,6 +153,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.hl.on_yank()
   end,
 })
+
 -- Do not overflow comment
 vim.api.nvim_create_autocmd('FileType', {
   pattern = '*',
@@ -167,8 +184,82 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 
--- [[ Install `lazy.nvim` plugin manager ]]
---    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
+-- Compile latex in the nvim window
+vim.keymap.set('n', '<leader>c', function()
+  local file = vim.fn.expand '%:p'
+  local ext = vim.fn.expand '%:e'
+
+  if ext ~= 'tex' then
+    vim.notify('❌ Not a .tex file', vim.log.levels.WARN)
+    return
+  end
+
+  local dir = vim.fn.expand '%:p:h'
+  vim.cmd 'write!'
+
+  local output = {}
+  local pdflatex_cmd = '/Library/TeX/texbin/pdflatex'
+
+  vim.fn.jobstart({ pdflatex_cmd, '-interaction=nonstopmode', '-synctex=1', file }, {
+    cwd = dir,
+    stdout_buffered = true,
+    stderr_buffered = true,
+    on_stdout = function(_, data)
+      if data then
+        for _, line in ipairs(data) do
+          if line ~= '' then
+            table.insert(output, line)
+          end
+        end
+      end
+    end,
+    on_stderr = function(_, data)
+      if data then
+        for _, line in ipairs(data) do
+          if line ~= '' then
+            table.insert(output, '❌  ' .. line)
+          end
+        end
+      end
+    end,
+    on_exit = function(_, code)
+      if code == 0 then
+        vim.notify('✅ LaTeX compilation succeeded', vim.log.levels.INFO)
+      else
+        vim.notify('❌ LaTeX compilation failed', vim.log.levels.ERROR)
+
+        -- Get correct UI size for floating window
+        local ui = vim.api.nvim_list_uis()[1]
+        local width = math.floor(ui.width * 0.8)
+        local height = math.floor(ui.height * 0.6)
+        local row = math.floor((ui.height - height) / 2)
+        local col = math.floor((ui.width - width) / 2)
+
+        local buf = vim.api.nvim_create_buf(false, true)
+        local win = vim.api.nvim_open_win(buf, true, {
+          relative = 'editor',
+          width = width,
+          height = height,
+          row = row,
+          col = col,
+          style = 'minimal',
+          border = 'rounded',
+        })
+
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, output)
+        vim.api.nvim_set_option_value('modifiable', false, { bif = buf })
+
+        -- Press 'q' to close
+        vim.keymap.set('n', 'q', function()
+          if vim.api.nvim_win_is_valid(win) then
+            vim.api.nvim_win_close(win, true)
+          end
+        end, { buffer = buf, noremap = true, silent = true })
+      end
+    end,
+  })
+end, { desc = 'Compile LaTeX with pdflatex (floating window on failure, q to close)' })
+
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
@@ -212,6 +303,35 @@ require('lazy').setup({
         options = {},
       },
     },
+  },
+
+  {
+    'notjedi/nvim-rooter.lua',
+    config = function()
+      require('nvim-rooter').setup {
+        rooter_patterns = {
+          '.git',
+          'Makefile',
+          'package.json',
+          'pyproject.toml',
+          'init.lua',
+          'CMakeLists.txt',
+          'build.gradle',
+          'requirements.txt',
+          'setup.py',
+          'setup.cfg',
+          'Pipfile',
+          'Pipfile.lock',
+          'tox.ini',
+          'Cargo.toml',
+          'compile_commands.json',
+          '.venv',
+          'venv',
+        },
+        trigger_patterns = { '*' },
+        manual = false, -- true if you only want :Rooter on demand
+      }
+    end,
   },
 
   { -- Useful plugin to show you pending keybinds.
@@ -435,6 +555,7 @@ require('lazy').setup({
           map('gO', require('telescope.builtin').lsp_document_symbols, 'Open Document Symbols in your current document')
           map('gW', require('telescope.builtin').lsp_dynamic_workspace_symbols, 'Open Workspace Symbols in your current workspace')
           map('gt', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype Definition of the word under your cursor')
+
           map('K', vim.lsp.buf.hover, 'Hover Documentation')
 
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
@@ -462,6 +583,7 @@ require('lazy').setup({
             [vim.diagnostic.severity.HINT] = '󰌶 ',
           },
         } or {},
+        virtual_lines = false,
         virtual_text = {
           source = 'if_many',
           spacing = 2,
@@ -488,6 +610,24 @@ require('lazy').setup({
         emmet_language_server = {},
         eslint = {},
         html = {},
+        texlab = {
+          settings = {
+            texlab = {
+              bibtexFormatter = 'texlab',
+              build = {
+                args = { '-pdf', '-interaction=nonstopmode', '-synctex=1', '%f' },
+                executable = 'latexmk',
+                forwardSearchAfter = false,
+                onSave = true,
+              },
+              chktex = {
+                onEdit = false,
+                onOpenAndSave = true,
+              },
+            },
+          },
+        },
+
         jsonls = {},
         just = {},
         postgres_lsp = {},
@@ -502,6 +642,9 @@ require('lazy').setup({
                 command = 'clippy',
                 allTargets = true,
                 features = 'all',
+              },
+              checkOnSave = {
+                enable = true,
               },
               completion = {
                 fullFunctionSignatures = {
@@ -526,8 +669,53 @@ require('lazy').setup({
               },
             },
           },
+
+          -- 👇 Add this outside settings
+          on_attach = function(client, bufnr)
+            if client.server_capabilities.documentFormattingProvider then
+              vim.api.nvim_create_autocmd('BufWritePre', {
+                group = vim.api.nvim_create_augroup('RustFormat', { clear = true }),
+                buffer = bufnr,
+                callback = function()
+                  vim.lsp.buf.format { async = false }
+                end,
+              })
+            end
+          end,
         },
         ts_ls = {},
+        ruff = {
+          settings = {
+            logLevel = 'debug',
+            -- 👇 Expand with useful configs
+            lint = {
+              enable = true, -- turn on linting
+              select = { 'E', 'F', 'I' }, -- which rule codes to enforce (errors, pyflakes, isort)
+              ignore = { 'E501' }, -- ignore specific rules (e.g. line length)
+            },
+
+            format = {
+              enable = true, -- enable Ruff's formatter (like black)
+            },
+
+            organizeImports = {
+              enable = true, -- auto-sort imports using isort rules
+            },
+            -- },
+          },
+          on_attach = function(client, bufnr)
+            -- Autoformat Python files on save
+            if client.server_capabilities.documentFormattingProvider then
+              vim.api.nvim_create_autocmd('BufWritePre', {
+                group = vim.api.nvim_create_augroup('RuffFormat', { clear = true }),
+                buffer = bufnr,
+                callback = function()
+                  vim.lsp.buf.format { async = false }
+                end,
+              })
+            end
+          end,
+        },
         lua_ls = {
           settings = {
             Lua = {
@@ -600,7 +788,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        python = { 'isort', 'black' },
+        python = { 'ruff' },
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
       },
     },
@@ -628,6 +816,17 @@ require('lazy').setup({
         opts = {},
       },
       'folke/lazydev.nvim',
+      {
+        'zbirenbaum/copilot.lua',
+        event = 'InsertEnter',
+        opts = {
+          suggestion = { enabled = false },
+          panel = { enabled = false },
+        },
+      },
+      {
+        'giuxtaposition/blink-cmp-copilot',
+      },
     },
     --- @module 'blink.cmp'
     --- @type blink.cmp.Config
@@ -668,9 +867,15 @@ require('lazy').setup({
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev', 'buffer' },
+        default = { 'lsp', 'path', 'snippets', 'lazydev', 'buffer', 'copilot' },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
+          copilot = {
+            name = 'copilot',
+            module = 'blink-cmp-copilot',
+            score_offset = 100,
+            async = true,
+          },
         },
       },
 
@@ -684,18 +889,88 @@ require('lazy').setup({
     'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
-      -- Load the colorscheme here.
       vim.cmd.colorscheme 'tokyonight-night'
-      vim.cmd.hi 'Comment gui=none'
+      vim.api.nvim_set_hl(0, 'Comment', { fg = '#ff8800', italic = false }) -- Pop color for comments
     end,
   },
 
   {
     'MeanderingProgrammer/render-markdown.nvim',
-    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' },
     ---@module 'render-markdown'
     ---@type render.md.UserConfig
     opts = {},
+  },
+  -- {
+  --   'github/copilot.vim',
+  -- },
+
+  {
+    'yetone/avante.nvim',
+    -- ⚠️ must add this setting! ! !
+    build = vim.fn.has 'win32' ~= 0 and 'powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false' or 'make',
+    event = 'VeryLazy',
+    version = false, -- Never set this value to "*"! Never!
+    ---@module 'avante'
+    ---@type avante.Config
+    opts = {
+      instructions_file = 'avante.md',
+      provider = 'claude',
+      providers = {
+        claude = {
+          endpoint = 'https://api.anthropic.com',
+          model = 'claude-sonnet-4-20250514',
+          timeout = 30000, -- Timeout in milliseconds
+          extra_request_body = {
+            temperature = 0.75,
+            max_tokens = 20480,
+          },
+        },
+        moonshot = {
+          endpoint = 'https://api.moonshot.ai/v1',
+          model = 'kimi-k2-0711-preview',
+          timeout = 30000, -- Timeout in milliseconds
+          extra_request_body = {
+            temperature = 0.75,
+            max_tokens = 32768,
+          },
+        },
+      },
+    },
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      'nvim-telescope/telescope.nvim', -- for file_selector provider telescope
+      'stevearc/dressing.nvim', -- for input provider dressing
+      'folke/snacks.nvim', -- for input provider snacks
+      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+
+      {
+        -- support for image pasting
+        'HakonHarnes/img-clip.nvim',
+        event = 'VeryLazy',
+        opts = {
+          -- recommended settings
+          default = {
+            embed_image_as_base64 = false,
+            prompt_for_file_name = false,
+            drag_and_drop = {
+              insert_mode = true,
+            },
+            -- required for Windows users
+            use_absolute_path = true,
+          },
+        },
+      },
+      {
+        -- Make sure to set this up properly if you have lazy=true
+        'MeanderingProgrammer/render-markdown.nvim',
+        opts = {
+          file_types = { 'markdown', 'Avante' },
+        },
+        ft = { 'markdown', 'Avante' },
+      },
+    },
   },
 
   {
@@ -751,10 +1026,8 @@ require('lazy').setup({
         'html',
         'http',
         'javascript',
-        'javadoc',
         'json',
         'just',
-        'kcl',
         'llvm',
         'make',
         'lua',
