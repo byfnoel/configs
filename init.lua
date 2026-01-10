@@ -165,7 +165,7 @@ vim.api.nvim_create_autocmd('FileType', {
 -- jump to last edit position on opening file except for git-messages
 vim.api.nvim_create_autocmd('BufReadPost', {
   pattern = '*',
-  callback = function(ev)
+  callback = function()
     if vim.fn.line '\'"' > 1 and vim.fn.line '\'"' <= vim.fn.line '$' then
       if not vim.fn.expand('%:p'):find('.git', 1, true) then
         vim.cmd 'exe "normal! g\'\\""'
@@ -190,7 +190,7 @@ vim.keymap.set('n', '<leader>c', function()
   local ext = vim.fn.expand '%:e'
 
   if ext ~= 'tex' then
-    vim.notify('❌ Not a .tex file', vim.log.levels.WARN)
+    vim.notify(' 󱤸 Not a .tex file', vim.log.levels.WARN)
     return
   end
 
@@ -217,16 +217,16 @@ vim.keymap.set('n', '<leader>c', function()
       if data then
         for _, line in ipairs(data) do
           if line ~= '' then
-            table.insert(output, '❌  ' .. line)
+            table.insert(output, '󱤸  ' .. line)
           end
         end
       end
     end,
     on_exit = function(_, code)
       if code == 0 then
-        vim.notify('✅ LaTeX compilation succeeded', vim.log.levels.INFO)
+        vim.notify('  LaTeX compilation succeeded', vim.log.levels.INFO)
       else
-        vim.notify('❌ LaTeX compilation failed', vim.log.levels.ERROR)
+        vim.notify(' 󱤸 LaTeX compilation failed', vim.log.levels.ERROR)
 
         -- Get correct UI size for floating window
         local ui = vim.api.nvim_list_uis()[1]
@@ -303,35 +303,6 @@ require('lazy').setup({
         options = {},
       },
     },
-  },
-
-  {
-    'notjedi/nvim-rooter.lua',
-    config = function()
-      require('nvim-rooter').setup {
-        rooter_patterns = {
-          '.git',
-          'Makefile',
-          'package.json',
-          'pyproject.toml',
-          'init.lua',
-          'CMakeLists.txt',
-          'build.gradle',
-          'requirements.txt',
-          'setup.py',
-          'setup.cfg',
-          'Pipfile',
-          'Pipfile.lock',
-          'tox.ini',
-          'Cargo.toml',
-          'compile_commands.json',
-          '.venv',
-          'venv',
-        },
-        trigger_patterns = { '*' },
-        manual = false, -- true if you only want :Rooter on demand
-      }
-    end,
   },
 
   { -- Useful plugin to show you pending keybinds.
@@ -886,10 +857,10 @@ require('lazy').setup({
   },
 
   { -- Main color scheme; To see current colorscheme, use `:Telescope colorscheme`.
-    'folke/tokyonight.nvim',
+    'kepano/flexoki-neovim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'flexoki'
       vim.api.nvim_set_hl(0, 'Comment', { fg = '#ff8800', italic = false }) -- Pop color for comments
     end,
   },
@@ -901,9 +872,6 @@ require('lazy').setup({
     ---@type render.md.UserConfig
     opts = {},
   },
-  -- {
-  --   'github/copilot.vim',
-  -- },
 
   {
     'yetone/avante.nvim',
@@ -1088,6 +1056,3 @@ require('lazy').setup({
     },
   },
 })
-
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
